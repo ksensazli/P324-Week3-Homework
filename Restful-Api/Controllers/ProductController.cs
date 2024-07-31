@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Restful_Api.Models;
 using Restful_Api.Services;
@@ -7,14 +8,18 @@ namespace Restful_Api.Controllers;
 // Define the route for the controller
 [Route("api/[controller]")]
 [ApiController]
-public class ProductsController : ControllerBase
+public class ProductController : ControllerBase
 {
     private readonly IProductService _productService;
+    private readonly IValidator<Product> _productValidator;
+    private readonly IValidator<int> _productIdValidator;
 
-    // Constructor to inject the product service
-    public ProductsController(IProductService productService)
+    // Constructor to inject the product service and validators
+    public ProductController(IProductService productService, IValidator<Product> productValidator, IValidator<int> productIdValidator)
     {
         _productService = productService;
+        _productValidator = productValidator;
+        _productIdValidator = productIdValidator;
     }
 
     // GET: api/products
@@ -32,6 +37,14 @@ public class ProductsController : ControllerBase
     [HttpGet("{id}")]
     public ActionResult<Product> GetProduct(int id)
     {
+        // Validate the product ID
+        var validationResult = _productIdValidator.Validate(id);
+        if (!validationResult.IsValid)
+        {
+            // Return 400 if validation fails
+            return BadRequest(validationResult.Errors);
+        }
+
         // Get the product from the service
         var product = _productService.GetProduct(id);
         if (product == null)
@@ -55,6 +68,14 @@ public class ProductsController : ControllerBase
             return BadRequest();
         }
 
+        // Validate the product model
+        var validationResult = _productValidator.Validate(product);
+        if (!validationResult.IsValid)
+        {
+            // Return 400 if validation fails
+            return BadRequest(validationResult.Errors);
+        }
+
         // Add the product using the service
         _productService.AddProduct(product);
         // Return 201 Created with the location of the new product
@@ -72,6 +93,22 @@ public class ProductsController : ControllerBase
             return BadRequest();
         }
 
+        // Validate the product ID
+        var idValidationResult = _productIdValidator.Validate(id);
+        if (!idValidationResult.IsValid)
+        {
+            // Return 400 if validation fails
+            return BadRequest(idValidationResult.Errors);
+        }
+
+        // Validate the product model
+        var productValidationResult = _productValidator.Validate(product);
+        if (!productValidationResult.IsValid)
+        {
+            // Return 400 if validation fails
+            return BadRequest(productValidationResult.Errors);
+        }
+
         // Update the product using the service
         _productService.UpdateProduct(id, product);
         // Return 204 No Content
@@ -83,6 +120,14 @@ public class ProductsController : ControllerBase
     [HttpDelete("{id}")]
     public IActionResult DeleteProduct(int id)
     {
+        // Validate the product ID
+        var validationResult = _productIdValidator.Validate(id);
+        if (!validationResult.IsValid)
+        {
+            // Return 400 if validation fails
+            return BadRequest(validationResult.Errors);
+        }
+
         // Delete the product using the service
         _productService.DeleteProduct(id);
         // Return 204 No Content
