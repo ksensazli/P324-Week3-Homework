@@ -47,18 +47,37 @@ dotnet run
 
 - Create Product
   - POST /api/products
-  - Request Body: Product object.
+  - Request Body: ProductUpdateInput object.
+    - Name: Product name.
+    - Price: Product price.
+    - Description: Product description.
 
 - Update Product
   - PUT /api/products/{id}
   - URL Parameters:
     - id: ID of the product.
-  - Request Body: Updated Product object.
+  - Request Body: ProductUpdateInput object.
+    - Name: Product name.
+    - Price: Product price.
+    - Description: Product description.
 
 - Delete Product
   - DELETE /api/products/{id}
   - URL Parameters:
     - id: ID of the product.
+   
+## Models
+
+- ProductUpdateInput: Represents the data required to create or update a product.
+  - Name: Product name.
+  - Price: Product price.
+  - Description: Product description.
+
+- ProductDetailOutput: Represents the details of a product returned by the API.
+  - Id: Unique identifier for the product.
+  - Name: Product name.
+  - Price: Product price.
+  - Description: Product description.
 
 ## Validation
 
