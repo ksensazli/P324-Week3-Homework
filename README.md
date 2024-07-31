@@ -1,17 +1,15 @@
 # RESTful API with .NET 8.0
 
-This project is a RESTful API example built using .NET 8.0. It provides a simple product management system and is structured according to various software development principles.
+This project is a RESTful API built with .NET 8.0 and C#. This API provides CRUD operations for managing products. The project demonstrates the use of best practices including SOLID principles, Dependency Injection, FluentValidation, Swagger for API documentation, and middleware for logging and exception handling.
 
 ## Features
 
-- Compliance with RESTful API standards
-- Adherence to SOLID principles
-- Dependency Injection (DI) with fake services
-- Various extension methods for the project
-- Swagger implementation
-- Global logging middleware
-- User authentication system with custom attribute
-- Global exception middleware
+- **CRUD Operations**: Create, Read, Update, and Delete operations for products.
+- **Validation**: Uses FluentValidation for input validation.
+- **Swagger**: Integrated Swagger for API documentation and testing.
+- **Logging Middleware**: Simple logging middleware to log basic request information.
+- **Exception Handling Middleware**: Custom middleware for handling global exceptions.
+- **Fake User Authentication** (Bonus): A basic user authentication system with custom attributes for access control.
 
 ## Installation
 
@@ -34,15 +32,57 @@ Build and run the project:
 dotnet run
 ```
 
-## Usage
+## API Endpoints
 
-After running the API, you can use the following endpoints:
+- Get Products
+  - GET /api/products
+  - Query Parameters:
+    - name (optional): Filter by product name.
+    - sort (optional): Sort by name or price.
 
-- GET /api/products: Retrieves the list of products, optionally filtered and sorted by name and price.
-- GET /api/products/{id}: Retrieves a product by its ID.
-- POST /api/products: Creates a new product.
-- PUT /api/products/{id}: Updates an existing product by its ID.
-- DELETE /api/products/{id}: Deletes a product by its ID.
+- Get Product By ID
+  - GET /api/products/{id}
+  - URL Parameters:
+    - id: ID of the product.
+
+- Create Product
+  - POST /api/products
+  - Request Body: ProductUpdateInput object.
+    - Name: Product name.
+    - Price: Product price.
+    - Description: Product description.
+
+- Update Product
+  - PUT /api/products/{id}
+  - URL Parameters:
+    - id: ID of the product.
+  - Request Body: ProductUpdateInput object.
+    - Name: Product name.
+    - Price: Product price.
+    - Description: Product description.
+
+- Delete Product
+  - DELETE /api/products/{id}
+  - URL Parameters:
+    - id: ID of the product.
+   
+## Models
+
+- ProductUpdateInput: Represents the data required to create or update a product.
+  - Name: Product name.
+  - Price: Product price.
+  - Description: Product description.
+
+- ProductDetailOutput: Represents the details of a product returned by the API.
+  - Id: Unique identifier for the product.
+  - Name: Product name.
+  - Price: Product price.
+  - Description: Product description.
+
+## Validation
+
+- ProductValidator: Validates Product model to ensure Name is not empty, Price is greater than zero, and Description is not empty.
+- ProductIdValidator: Validates Product ID to ensure it is greater than zero.
 
 ## Swagger
 
