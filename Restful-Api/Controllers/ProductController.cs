@@ -11,85 +11,123 @@ namespace Restful_Api.Controllers;
 public class ProductController : ControllerBase
 {
     private readonly IProductService _productService;
-    private readonly IValidator<Product> _productValidator;
+    private readonly IValidator<ProductUpdateInput> _productUpdateValidator;
     private readonly IValidator<int> _productIdValidator;
 
     // Constructor to inject the product service and validators
-    public ProductController(IProductService productService, IValidator<Product> productValidator, IValidator<int> productIdValidator)
+    public ProductController(IProductService productService, IValidator<ProductUpdateInput> productUpdateValidator, IValidator<int> productIdValidator)
     {
         _productService = productService;
-        _productValidator = productValidator;
+        _productUpdateValidator = productUpdateValidator;
         _productIdValidator = productIdValidator;
     }
 
     // GET: api/products
     // Retrieves the list of products, optionally filtered by name and sorted by name or price
     [HttpGet]
-    public ActionResult<IEnumerable<Product>> GetProducts([FromQuery] string name, [FromQuery] string sort)
+    public ActionResult<IEnumerable<ProductDetailOutput>> GetProducts([FromQuery] string name, [FromQuery] string sort)
     {
-        // Get the products from the service
+        // Retrieve the products from the service
         var result = _productService.GetProducts(name, sort);
-        return Ok(result);
+        
+        // Map the result to ProductDetailOutput
+        var output = result.Select(p => new ProductDetailOutput
+        {
+            Id = p.Id,
+            Name = p.Name,
+            Price = p.Price,
+            Description = p.Description
+        });
+
+        // Return the list of products
+        return Ok(output);
     }
 
     // GET: api/products/{id}
     // Retrieves a product by its ID
     [HttpGet("{id}")]
-    public ActionResult<Product> GetProduct(int id)
+    public ActionResult<ProductDetailOutput> GetProduct(int id)
     {
         // Validate the product ID
         var validationResult = _productIdValidator.Validate(id);
         if (!validationResult.IsValid)
         {
-            // Return 400 if validation fails
+            // Return 400 Bad Request if validation fails
             return BadRequest(validationResult.Errors);
         }
 
-        // Get the product from the service
+        // Retrieve the product from the service
         var product = _productService.GetProduct(id);
         if (product == null)
         {
-            // Return 404 if not found
+            // Return 404 Not Found if the product is not found
             return NotFound();
         }
 
-        // Return the found product
-        return Ok(product);
+        // Map the product to ProductDetailOutput
+        var output = new ProductDetailOutput
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Price = product.Price,
+            Description = product.Description
+        };
+
+        // Return the product details
+        return Ok(output);
     }
 
     // POST: api/products
     // Creates a new product
     [HttpPost]
-    public ActionResult<Product> CreateProduct([FromBody] Product product)
+    public ActionResult<ProductDetailOutput> CreateProduct([FromBody] ProductUpdateInput productInput)
     {
-        if (product == null)
+        if (productInput == null)
         {
-            // Return 400 if the product is null
+            // Return 400 Bad Request if the input is null
             return BadRequest();
         }
 
-        // Validate the product model
-        var validationResult = _productValidator.Validate(product);
+        // Validate the product input
+        var validationResult = _productUpdateValidator.Validate(productInput);
         if (!validationResult.IsValid)
         {
-            // Return 400 if validation fails
+            // Return 400 Bad Request if validation fails
             return BadRequest(validationResult.Errors);
         }
 
+        // Map the input to a new Product entity
+        var product = new Product
+        {
+            Name = productInput.Name,
+            Price = productInput.Price,
+            Description = productInput.Description
+        };
+
         // Add the product using the service
         _productService.AddProduct(product);
+
+        // Map the product to ProductDetailOutput
+        var output = new ProductDetailOutput
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Price = product.Price,
+            Description = product.Description
+        };
+
         // Return 201 Created with the location of the new product
-        return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+        return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, output);
     }
 
     // PUT: api/products/{id}
     // Updates an existing product
     [HttpPut("{id}")]
-    public IActionResult UpdateProduct(int id, [FromBody] Product product)
+    public IActionResult UpdateProduct(int id, [FromBody] ProductUpdateInput productInput)
     {
-        if (product == null || product.Id != id)
+        if (productInput == null || id <= 0)
         {
-            // Return 400 if the product is null or the ID doesn't match
+            // Return 400 Bad Request if the input is null or ID is invalid
             return BadRequest();
         }
 
@@ -97,20 +135,30 @@ public class ProductController : ControllerBase
         var idValidationResult = _productIdValidator.Validate(id);
         if (!idValidationResult.IsValid)
         {
-            // Return 400 if validation fails
+            // Return 400 Bad Request if validation fails
             return BadRequest(idValidationResult.Errors);
         }
 
-        // Validate the product model
-        var productValidationResult = _productValidator.Validate(product);
+        // Validate the product input
+        var productValidationResult = _productUpdateValidator.Validate(productInput);
         if (!productValidationResult.IsValid)
         {
-            // Return 400 if validation fails
+            // Return 400 Bad Request if validation fails
             return BadRequest(productValidationResult.Errors);
         }
 
+        // Map the input to an updated Product entity
+        var product = new Product
+        {
+            Id = id,
+            Name = productInput.Name,
+            Price = productInput.Price,
+            Description = productInput.Description
+        };
+
         // Update the product using the service
         _productService.UpdateProduct(id, product);
+
         // Return 204 No Content
         return NoContent();
     }
@@ -124,12 +172,13 @@ public class ProductController : ControllerBase
         var validationResult = _productIdValidator.Validate(id);
         if (!validationResult.IsValid)
         {
-            // Return 400 if validation fails
+            // Return 400 Bad Request if validation fails
             return BadRequest(validationResult.Errors);
         }
 
         // Delete the product using the service
         _productService.DeleteProduct(id);
+
         // Return 204 No Content
         return NoContent();
     }
